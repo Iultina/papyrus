@@ -1,0 +1,22 @@
+[tool.ruff]
+target-version = 'py312'
+
+line-length = 120
+extend-exclude = []
+force-exclude = true
+
+[tool.ruff.format]
+skip-magic-trailing-comma = true
+
+[tool.ruff.lint]
+select = ['ALL']
+ignore = ['RUF002', 'RET5030', 'D100', 'D102', 'D107']
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false
+
+[tool.pyright]
+include = []
+
+reportMissingImports = false
+reportMissingModuleSource = false
