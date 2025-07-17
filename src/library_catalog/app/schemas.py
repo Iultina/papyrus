@@ -1,14 +1,17 @@
-from pydantic import BaseModel
-
-
-from pydantic import Field
-from typing import Literal, Self
+from typing import Annotated, Literal
 from datetime import datetime
+from pydantic import BaseModel, Field, conint
+
+Str50 = Annotated[str, Field(min_length=1, max_length=50, strip_whitespace=True)]
+Str100 = Annotated[str, Field(min_length=1, max_length=100, strip_whitespace=True)]
+Str500 = Annotated[str, Field(min_length=1, max_length=500, strip_whitespace=True)]
+Year = Annotated[int, Field(ge=1, le=2100)]
+Pages = Annotated[int, Field(ge=1, le=50000)]
 
 
 class AuthorBaseSchema(BaseModel):
-    first_name: str
-    last_name: str
+    first_name: Str50
+    last_name: Str50
 
     model_config = {"from_attributes": True}
 
@@ -26,16 +29,16 @@ class AuthorReadSchema(AuthorReadBasicSchema):
 
 
 class BookBaseSchema(BaseModel):
-    title: str
-    year_published: int = Field(ge=1)
-    genre: str
-    num_pages: int = Field(ge=0)
+    title: Str500
+    year_published: Year
+    genre: Str100
+    num_pages: Pages
     availability: Literal["в наличии", "выдана"]
 
     model_config = {"from_attributes": True}
 
     @classmethod
-    def from_db(cls, book) -> Self:
+    def from_db(cls, book) -> "Self":
         return cls(
             title=book.title,
             year_published=book.year_published,
@@ -46,7 +49,7 @@ class BookBaseSchema(BaseModel):
 
 
 class BookCreateSchema(BookBaseSchema):
-    authors: list[int]
+    authors: list[conint(strict=True, ge=1)] = Field(min_length=1)
 
 
 class BookReadSchema(BookBaseSchema):
@@ -58,7 +61,7 @@ class BookReadSchema(BookBaseSchema):
     cover_url: str | None
 
     @classmethod
-    def from_db(cls, book) -> Self:
+    def from_db(cls, book) -> "Self":
         return cls(
             id=book.id,
             title=book.title,
@@ -78,7 +81,7 @@ class BookReadSchema(BookBaseSchema):
 
 
 class BookFilterSchema(BaseModel):
-    title: str | None = None
-    genre: str | None = None
+    title: Str500 | None = None
+    genre: Str100 | None = None
     availability: Literal["в наличии", "выдана"] | None = None
-    year_published: int | None = None
+    year_published: Year | None = None

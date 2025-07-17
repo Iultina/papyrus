@@ -1,18 +1,6 @@
-from dataclasses import dataclass
 from typing import Protocol
-
-
-@dataclass
-class ExternalBookData:
-    """Данные о книге, полученные из внешнего источника.
-
-    Атрибуты:
-        description: Краткое описание книги, если доступно.
-        cover_url: Ссылка на обложку книги в подходящем разрешении.
-    """
-
-    description: str | None
-    cover_url: str | None
+from app.adapters.openlibrary import OpenLibraryAPI
+from app.typing import ExternalBookData
 
 
 class BookDataProvider(Protocol):
@@ -28,3 +16,26 @@ class BookDataProvider(Protocol):
         Использует внешний источник (например, Open Library или Google Books) для получения дополнительных данных.
         """
         ...
+
+
+class OpenLibraryAdapter(BookDataProvider):
+    """Адаптер, приводящий OpenLibraryAPI к интерфейсу BookDataProvider."""
+
+    def __init__(self, api: OpenLibraryAPI) -> None:
+        self.api = api
+
+    async def fetch_book_data(self, title: str) -> ExternalBookData | None:
+        book = await self.api.search_book(title)
+        if not book:
+            return
+
+        description_json = await self.api.get_description(book.get("key"))
+        description = None
+
+        if description_json:
+            description = description_json.get("description")
+        cover_url = (
+            self.api.get_cover_url(book["cover_i"]) if "cover_i" in book else None
+        )
+
+        return ExternalBookData(description=description, cover_url=cover_url)

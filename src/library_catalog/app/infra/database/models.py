@@ -35,7 +35,7 @@ class Book(Base):
     title: Mapped[str] = mapped_column(String(500))
     year_published: Mapped[int]
     genre: Mapped[str] = mapped_column(String(100))
-    num_pages: Mapped[int] = mapped_column(String(500))
+    num_pages: Mapped[int]
     availability: Mapped[str] = mapped_column(String(20))
     cover_url: Mapped[str | None]
     description: Mapped[str | None] = mapped_column(Text)
